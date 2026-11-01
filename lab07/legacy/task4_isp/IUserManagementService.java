@@ -1,6 +1,5 @@
 package lab07.legacy.task4_isp;
 
-// можна видалити
 public interface IUserManagementService {
     void registerUser(String userIdentifier, String secretKey);
     boolean authenticate(String userIdentifier, String secretKey);
