@@ -1,4 +1,0 @@
-@"
-out/
-*.class
-"@ | Out-File -Encoding utf8 .gitignore
