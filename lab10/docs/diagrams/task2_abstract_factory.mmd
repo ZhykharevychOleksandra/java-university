@@ -1,0 +1,126 @@
+classDiagram
+    direction TB
+    class BankProduct {
+        <<interface>>
+        +segment() String
+        +describe() String
+    }
+    class Card {
+        <<interface>>
+    }
+    class CurrentAccount {
+        <<interface>>
+    }
+    class TariffPlan {
+        <<interface>>
+    }
+    class ProductPackageFactory {
+        <<interface>>
+        +segmentName() String
+        +createCard() Card
+        +createAccount() CurrentAccount
+        +createTariffPlan() TariffPlan
+    }
+    class Branch {
+        -name String
+        +Branch(String)
+        +openService(Client, ProductPackageFactory) ServicePackage
+    }
+    class ServicePackage {
+        <<record>>
+        +client Client
+        +card Card
+        +account CurrentAccount
+        +tariff TariffPlan
+    }
+    namespace RetailSegment {
+        class RetailProductFactory {
+            ~SEGMENT String$
+            +segmentName() String
+            +createCard() Card
+            +createAccount() CurrentAccount
+            +createTariffPlan() TariffPlan
+        }
+        class RetailCard
+        class RetailAccount
+        class RetailTariff
+    }
+    namespace PremiumSegment {
+        class PremiumProductFactory {
+            ~SEGMENT String$
+            +segmentName() String
+            +createCard() Card
+            +createAccount() CurrentAccount
+            +createTariffPlan() TariffPlan
+        }
+        class PremiumCard
+        class PremiumAccount
+        class PremiumTariff
+    }
+    namespace BusinessSegment {
+        class BusinessProductFactory {
+            ~SEGMENT String$
+            +segmentName() String
+            +createCard() Card
+            +createAccount() CurrentAccount
+            +createTariffPlan() TariffPlan
+        }
+        class BusinessCard
+        class BusinessAccount
+        class BusinessTariff
+    }
+    namespace StudentSegment {
+        class StudentProductFactory {
+            ~SEGMENT String$
+            +segmentName() String
+            +createCard() Card
+            +createAccount() CurrentAccount
+            +createTariffPlan() TariffPlan
+        }
+        class StudentCard
+        class StudentAccount
+        class StudentTariff
+    }
+
+    BankProduct <|-- Card
+    BankProduct <|-- CurrentAccount
+    BankProduct <|-- TariffPlan
+    RetailProductFactory ..|> ProductPackageFactory
+    RetailCard ..|> Card
+    RetailAccount ..|> CurrentAccount
+    RetailTariff ..|> TariffPlan
+    RetailProductFactory ..> RetailCard : «create»
+    RetailProductFactory ..> RetailAccount : «create»
+    RetailProductFactory ..> RetailTariff : «create»
+    PremiumProductFactory ..|> ProductPackageFactory
+    PremiumCard ..|> Card
+    PremiumAccount ..|> CurrentAccount
+    PremiumTariff ..|> TariffPlan
+    PremiumProductFactory ..> PremiumCard : «create»
+    PremiumProductFactory ..> PremiumAccount : «create»
+    PremiumProductFactory ..> PremiumTariff : «create»
+    BusinessProductFactory ..|> ProductPackageFactory
+    BusinessCard ..|> Card
+    BusinessAccount ..|> CurrentAccount
+    BusinessTariff ..|> TariffPlan
+    BusinessProductFactory ..> BusinessCard : «create»
+    BusinessProductFactory ..> BusinessAccount : «create»
+    BusinessProductFactory ..> BusinessTariff : «create»
+    StudentProductFactory ..|> ProductPackageFactory
+    StudentCard ..|> Card
+    StudentAccount ..|> CurrentAccount
+    StudentTariff ..|> TariffPlan
+    StudentProductFactory ..> StudentCard : «create»
+    StudentProductFactory ..> StudentAccount : «create»
+    StudentProductFactory ..> StudentTariff : «create»
+    Branch ..> ProductPackageFactory : «use»
+    Branch ..> ServicePackage : «create»
+    ServicePackage o-- "1" Card
+    ServicePackage o-- "1" CurrentAccount
+    ServicePackage o-- "1" TariffPlan
+
+    note for ProductPackageFactory "Роль: AbstractFactory<br/>створює сімейство продуктів одного сегмента"
+    note for RetailProductFactory "Роль: ConcreteFactory<br/>*Card, *Account, *Tariff — ConcreteProduct"
+    note for StudentProductFactory "Додано без змін Branch<br/>Роль: ConcreteFactory"
+    note for Card "Роль: AbstractProduct<br/>(Card, CurrentAccount, TariffPlan)"
+    note for Branch "Роль: Client<br/>знає лише абстракції"

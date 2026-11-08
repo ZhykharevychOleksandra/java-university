@@ -1,0 +1,138 @@
+classDiagram
+    direction TB
+
+    class StatementGenerator {
+        <<abstract>>
+        -ledger List~Transaction~
+        #StatementGenerator(List~Transaction~)
+        +generate(Client, YearMonth) StatementDocument
+        #recipient() String*
+        #createDocument(StatementData) StatementDocument*
+        -selectOperations(YearMonth) List~Transaction~
+        -calculateTotals(List~Transaction~) Totals
+        -send(StatementDocument, String) void
+    }
+
+    class ClientStatementGenerator {
+        +ClientStatementGenerator(List~Transaction~)
+        #recipient() String
+        #createDocument(StatementData) StatementDocument
+    }
+    class TaxStatementGenerator {
+        +TaxStatementGenerator(List~Transaction~)
+        #recipient() String
+        #createDocument(StatementData) StatementDocument
+    }
+    class AccountingStatementGenerator {
+        +AccountingStatementGenerator(List~Transaction~)
+        #recipient() String
+        #createDocument(StatementData) StatementDocument
+    }
+    class AuditorStatementGenerator {
+        +AuditorStatementGenerator(List~Transaction~)
+        #recipient() String
+        #createDocument(StatementData) StatementDocument
+    }
+
+    class StatementDocument {
+        <<interface>>
+        +format() String
+        +fileName() String
+        +render() String
+    }
+
+    class PdfStatement {
+        <<record>>
+        +data StatementData
+        +format() String
+        +fileName() String
+        +render() String
+    }
+    class XmlStatement {
+        <<record>>
+        +data StatementData
+        +format() String
+        +fileName() String
+        +render() String
+    }
+    class CsvStatement {
+        <<record>>
+        +data StatementData
+        +format() String
+        +fileName() String
+        +render() String
+    }
+    class XlsxStatement {
+        <<record>>
+        +data StatementData
+        +format() String
+        +fileName() String
+        +render() String
+    }
+
+    class StatementData {
+        <<record>>
+        +client Client
+        +period YearMonth
+        +operations List~Transaction~
+        +totals Totals
+    }
+    class Transaction {
+        <<record>>
+        +date LocalDate
+        +description String
+        +amount BigDecimal
+    }
+    class Totals {
+        <<record>>
+        +count int
+        +income BigDecimal
+        +expenses BigDecimal
+        +net() BigDecimal
+    }
+    class Client {
+        <<record>>
+        +fullName String
+        +accounts List~String~
+    }
+    class Log {
+        <<utility>>
+        +log(String, String) void$
+    }
+
+    ClientStatementGenerator --|> StatementGenerator
+    TaxStatementGenerator --|> StatementGenerator
+    AccountingStatementGenerator --|> StatementGenerator
+    AuditorStatementGenerator --|> StatementGenerator
+
+    PdfStatement ..|> StatementDocument
+    XmlStatement ..|> StatementDocument
+    CsvStatement ..|> StatementDocument
+    XlsxStatement ..|> StatementDocument
+
+    ClientStatementGenerator ..> PdfStatement : «create»
+    TaxStatementGenerator ..> XmlStatement : «create»
+    AccountingStatementGenerator ..> CsvStatement : «create»
+    AuditorStatementGenerator ..> XlsxStatement : «create»
+
+    StatementGenerator ..> StatementDocument : «use»
+    StatementGenerator ..> StatementData : «create»
+    StatementGenerator ..> Totals : «create»
+    StatementGenerator ..> Log : «use»
+    StatementGenerator o-- "0..*" Transaction : ledger
+    StatementData *-- "0..*" Transaction
+    StatementData *-- "1" Totals
+    StatementData --> "1" Client
+    PdfStatement --> "1" StatementData
+    XmlStatement --> "1" StatementData
+    CsvStatement --> "1" StatementData
+    XlsxStatement --> "1" StatementData
+
+    note for StatementGenerator "Роль: Creator<br/>generate() — загальний процес, описаний один раз;<br/>createDocument() — фабричний метод"
+    note for ClientStatementGenerator "Роль: ConcreteCreator (клієнт, PDF)"
+    note for TaxStatementGenerator "Роль: ConcreteCreator (податкова, XML)"
+    note for AccountingStatementGenerator "Роль: ConcreteCreator (бухгалтерія, CSV)"
+    note for AuditorStatementGenerator "Додано без змін StatementGenerator<br/>Роль: ConcreteCreator (аудитор, XLSX)"
+    note for StatementDocument "Роль: Product"
+    note for PdfStatement "Роль: ConcreteProduct"
+    note for XlsxStatement "Додано без змін процесу<br/>Роль: ConcreteProduct"

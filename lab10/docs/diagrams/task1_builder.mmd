@@ -1,0 +1,119 @@
+classDiagram
+    direction TB
+
+    class LoanApplicationBuilder {
+        <<interface>>
+        +forClient(Client) LoanApplicationBuilder
+        +amount(BigDecimal) LoanApplicationBuilder
+        +termMonths(int) LoanApplicationBuilder
+        +purpose(String) LoanApplicationBuilder
+        +collateral(String, BigDecimal) LoanApplicationBuilder
+        +guarantor(String, BigDecimal) LoanApplicationBuilder
+        +incomeCertificate(String, BigDecimal) LoanApplicationBuilder
+        +insurance(String, String) LoanApplicationBuilder
+        +build() LoanApplication
+        +reset() void
+    }
+
+    class DefaultLoanApplicationBuilder {
+        -SOURCE String$
+        -client Client
+        -amount BigDecimal
+        -termMonths Integer
+        -purpose String
+        -collateral Collateral
+        -guarantor Guarantor
+        -incomeCertificate IncomeCertificate
+        -insurance Insurance
+        +build() LoanApplication
+        +reset() void
+        -firstError() String
+    }
+
+    class LoanApplicationDirector {
+        -SOURCE String$
+        -builder LoanApplicationBuilder
+        +LoanApplicationDirector(LoanApplicationBuilder)
+        +autoLoan(Client, BigDecimal, int, String, BigDecimal) LoanApplication
+        +consumerLoan(Client, BigDecimal, int, BigDecimal) LoanApplication
+    }
+
+    class LoanApplication {
+        -client Client
+        -amount BigDecimal
+        -termMonths int
+        -purpose String
+        -collateral Collateral
+        -guarantor Guarantor
+        -incomeCertificate IncomeCertificate
+        -insurance Insurance
+        ~LoanApplication(8 параметрів)
+        +client() Client
+        +amount() BigDecimal
+        +termMonths() int
+        +purpose() String
+        +collateral() Optional~Collateral~
+        +guarantor() Optional~Guarantor~
+        +incomeCertificate() Optional~IncomeCertificate~
+        +insurance() Optional~Insurance~
+        +toString() String
+    }
+
+    class Collateral {
+        <<record>>
+        +description String
+        +estimatedValue BigDecimal
+    }
+    class Guarantor {
+        <<record>>
+        +fullName String
+        +monthlyIncome BigDecimal
+    }
+    class IncomeCertificate {
+        <<record>>
+        +issuer String
+        +monthlyIncome BigDecimal
+    }
+    class Insurance {
+        <<record>>
+        +policyType String
+        +insurer String
+    }
+
+    class Client {
+        <<record>>
+        +fullName String
+        +accounts List~String~
+    }
+
+    class InvalidLoanApplicationException {
+        +InvalidLoanApplicationException(String)
+    }
+
+    class IllegalStateException {
+        <<java.lang>>
+    }
+
+    class Log {
+        <<utility>>
+        +log(String, String) void$
+        +print(Object) void$
+    }
+
+    DefaultLoanApplicationBuilder ..|> LoanApplicationBuilder
+    LoanApplicationDirector --> "1" LoanApplicationBuilder : builder
+    DefaultLoanApplicationBuilder ..> LoanApplication : «create» у build()
+    DefaultLoanApplicationBuilder ..> InvalidLoanApplicationException : «throws»
+    DefaultLoanApplicationBuilder ..> Log : «use»
+    InvalidLoanApplicationException --|> IllegalStateException
+    DefaultLoanApplicationBuilder --> "0..1" Client
+    LoanApplication --> "1" Client
+    LoanApplication *-- "0..1" Collateral
+    LoanApplication *-- "0..1" Guarantor
+    LoanApplication *-- "0..1" IncomeCertificate
+    LoanApplication *-- "0..1" Insurance
+
+    note for LoanApplicationBuilder "Роль: Builder<br/>окрема дія для кожної частини заявки"
+    note for DefaultLoanApplicationBuilder "Роль: ConcreteBuilder<br/>перевіряє клієнта, суму більшу за нуль і строк лише в build()"
+    note for LoanApplicationDirector "Роль: Director<br/>типові заявки «Автокредит» і «Споживчий кредит» описані в одному місці"
+    note for LoanApplication "Роль: Product<br/>незмінна заявка, конструктор доступний лише в пакеті"
