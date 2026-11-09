@@ -1,0 +1,52 @@
+classDiagram
+    direction LR
+    class ConnectionPool {
+        <<Object Pool>>
+        -SOURCE$ : String
+        -maxSize : int
+        -all : List~SecureConnection~
+        -idle : Deque~SecureConnection~
+        -inUse : Map~Payment, SecureConnection~
+        -waiting : Queue~Payment~
+        +ConnectionPool(maxSize int)
+        +submit(payment Payment) void
+        +complete(payment Payment) void
+        +busyCount() int
+        +waitingCount() int
+        +establishedCount() int
+        +printStatistics() void
+        -acquire() SecureConnection
+        -start(c SecureConnection, p Payment) void
+    }
+    class SecureConnection {
+        <<Reusable>>
+        -id : String
+        -sessionId : String
+        -paymentsHandled : int
+        -paymentId : int
+        -operationId : String
+        -amount : long
+        -fromAccount : String
+        -toAccount : String
+        ~establish() void
+        ~assign(payment Payment) void
+        ~execute() void
+        ~reset() void
+        ~isClean() boolean
+    }
+    class Payment {
+        <<Client request>>
+        -id : int
+        -amount : long
+        -fromAccount : String
+        -toAccount : String
+        -operationId : String
+        +getId() int
+        +getAmount() long
+    }
+    ConnectionPool "1" *-- "0..4" SecureConnection : all (≤ maxSize)
+    ConnectionPool "1" o-- "0..*" Payment : waiting (FIFO)
+    ConnectionPool ..> Payment : submit / complete
+    SecureConnection "1" ..> "0..1" Payment : поточний платіж (assign/reset)
+    note for ConnectionPool "Роль: OBJECT POOL. maxSize = 4. Методи synchronized. Черга FIFO: справедливо, без голодування."
+    note for SecureConnection "Роль: REUSABLE. establish() дорога, виконується 1 раз. reset() стирає дані платежу, сесія лишається."

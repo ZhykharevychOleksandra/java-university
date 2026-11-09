@@ -1,0 +1,56 @@
+classDiagram
+    direction TB
+    class Prototype~T~ {
+        <<interface>>
+        <<Prototype>>
+        +copy() T
+    }
+    class DepositContract {
+        <<Concrete Prototype>>
+        -SEQ$ : AtomicInteger
+        -id : String
+        -productName : String
+        -ratePercent : BigDecimal
+        -termMonths : int
+        -earlyTerminationTerms : String
+        -schedule : List~PaymentScheduleItem~
+        -addenda : List~Addendum~
+        -amount : BigDecimal
+        -client : Client
+        -DepositContract(source DepositContract)
+        +createTemplate(name String, rate BigDecimal, term int)$ DepositContract
+        +copy() DepositContract
+        +issueFor(client Client, amount BigDecimal) DepositContract
+        +addAddendum(a Addendum) void
+        +setAmount(amount BigDecimal) void
+        +getSchedule() List~PaymentScheduleItem~
+        +snapshot() String
+    }
+    class PaymentScheduleItem {
+        <<Mutable part: клонується>>
+        -month : int
+        -payoutPercent : BigDecimal
+        ~PaymentScheduleItem(source PaymentScheduleItem)
+        +setPayoutPercent(p BigDecimal) void
+    }
+    class Addendum {
+        <<Immutable: ділиться>>
+        -number : String
+        -text : String
+    }
+    class Client {
+        <<Immutable: посилання>>
+        -fullName : String
+        -accounts : List~String~
+    }
+    class Main {
+        <<Client раннера>>
+        ~situation3Contracts()$ void
+    }
+    Prototype~T~ <|.. DepositContract : реалізація
+    DepositContract "1" *-- "0..*" PaymentScheduleItem : schedule (глибока копія)
+    DepositContract "1" o-- "0..*" Addendum : addenda (новий список)
+    DepositContract "0..*" --> "0..1" Client : client
+    DepositContract ..> DepositContract : copy() створює незалежну копію
+    Main ..> DepositContract : createTemplate(), issueFor()
+    note for DepositContract "Роль: CONCRETE PROTOTYPE. Cloneable не використано: super.clone() = поверхнева копія. Конструктор копіювання робить глибоку."

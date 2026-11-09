@@ -1,0 +1,47 @@
+classDiagram
+    direction LR
+    class ExchangeRateService {
+        <<Singleton>>
+        -ExchangeRateService$ created : boolean
+        -id : String
+        -rates : Map~String, ExchangeRate~
+        -ExchangeRateService()
+        +getInstance()$ ExchangeRateService
+        +getId() String
+        +getRate(currency String) ExchangeRate
+        ~setRate(currency String, buy BigDecimal, sell BigDecimal) void
+    }
+    class Holder {
+        <<Lazy holder>>
+        ~INSTANCE$ : ExchangeRateService
+    }
+    class ExchangeRate {
+        <<Value object>>
+        -currency : String
+        -buy : BigDecimal
+        -sell : BigDecimal
+        -setAt : LocalDateTime
+        +getBuy() BigDecimal
+        +getSell() BigDecimal
+        +getSetAt() LocalDateTime
+    }
+    class Treasury {
+        <<Client: пише курс>>
+        +setRate(currency String, buy BigDecimal, sell BigDecimal) void
+    }
+    class Branch {
+        <<Client: читає курс>>
+        -number : int
+        +showRate(currency String) String
+    }
+    class OnlineBanking {
+        <<Client: читає курс>>
+        +showRate(currency String) String
+    }
+    ExchangeRateService "1" *-- "0..*" ExchangeRate : rates
+    Holder ..> ExchangeRateService : створює єдиний екземпляр
+    ExchangeRateService ..> Holder : getInstance() → INSTANCE
+    Treasury ..> ExchangeRateService : getInstance(), setRate()
+    Branch "10" ..> ExchangeRateService : getInstance(), getRate()
+    OnlineBanking ..> ExchangeRateService : getInstance(), getRate()
+    note for ExchangeRateService "Роль: SINGLETON. Приватний конструктор + guard від рефлексії. setRate() package-private: курс встановлює лише казначейство."

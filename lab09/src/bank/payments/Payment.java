@@ -1,28 +1,25 @@
-package lab09.src.bank.objectpool;
+package bank.payments;
 
-public class Payment {
+public final class Payment {
     private final int id;
-    private final double amount;
+    private final long amount;
     private final String fromAccount;
     private final String toAccount;
+    private final String operationId;
 
-    public Payment(
-            int id,
-            double amount,
-            String fromAccount,
-            String toAccount
-    ) {
+    public Payment(int id, long amount, String fromAccount, String toAccount) {
         this.id = id;
         this.amount = amount;
         this.fromAccount = fromAccount;
         this.toAccount = toAccount;
+        this.operationId = "OP-" + id;
     }
 
     public int getId() {
         return id;
     }
 
-    public double getAmount() {
+    public long getAmount() {
         return amount;
     }
 
@@ -32,5 +29,9 @@ public class Payment {
 
     public String getToAccount() {
         return toAccount;
+    }
+
+    public String getOperationId() {
+        return operationId;
     }
 }
