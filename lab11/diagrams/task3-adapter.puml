@@ -1,0 +1,54 @@
+@startuml task3-adapter
+title Завдання 3. Adapter: підключення SWIFT-бібліотеки
+skinparam classAttributeIconSize 0
+
+interface PaymentGateway <<Target>> {
+  + send(payment: Payment): PaymentResult
+}
+
+class Treasury <<Client>> {
+  - gateway: PaymentGateway
+  + sendInternationalPayment(payment: Payment): PaymentResult
+}
+
+class SwiftPaymentAdapter <<Adapter>> {
+  - {static} DATE: DateTimeFormatter
+  - library: SwiftLibrary
+  - valueDate: LocalDate
+  - sequence: int
+  + send(payment: Payment): PaymentResult
+  - buildMessage(p: Payment): String
+  - parseStatus(code: String): PaymentResult
+}
+
+class SwiftLibrary <<Adaptee>> {
+  + transmit(message: String): String
+}
+
+class Payment {
+  - sender: String
+  - receiver: String
+  - amount: BigDecimal
+  - currency: String
+}
+
+class PaymentResult {
+  - accepted: boolean
+  - reason: String
+  + {static} ok(): PaymentResult
+  + {static} rejected(reason: String): PaymentResult
+}
+
+PaymentGateway <|.. SwiftPaymentAdapter
+Treasury --> "1" PaymentGateway : gateway
+SwiftPaymentAdapter --> "1" SwiftLibrary : library
+PaymentGateway ..> Payment
+PaymentGateway ..> PaymentResult
+Treasury ..> Payment
+
+note right of SwiftPaymentAdapter
+  Payment -> текст ":20:..:32A:..:50K:..:59:.."
+  код "ACSC"/"RJCT/.." -> PaymentResult.
+  Усе знання про SWIFT лише тут.
+end note
+@enduml

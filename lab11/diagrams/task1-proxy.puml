@@ -1,0 +1,63 @@
+@startuml task1-proxy
+title Завдання 1. Proxy: звернення до бюро кредитних історій
+skinparam classAttributeIconSize 0
+
+interface CreditBureau <<Subject>> {
+  + getHistory(requester: Employee, clientId: String): CreditReport
+}
+
+class RealCreditBureau <<RealSubject>> {
+  - paidRequests: int
+  + getHistory(requester: Employee, clientId: String): CreditReport
+  + getPaidRequests(): int
+}
+
+class CreditBureauProxy <<Proxy>> {
+  - real: CreditBureau
+  - cache: Map<String, CreditReport>
+  + getHistory(requester: Employee, clientId: String): CreditReport
+  + startNewWorkDay(): void
+}
+
+class LoanModule <<Client>> {
+  - bureau: CreditBureau
+  + checkClient(employee: Employee, clientId: String): void
+}
+
+class Employee {
+  - name: String
+  - role: Role
+  + name(): String
+  + role(): Role
+}
+
+enum Role {
+  CREDIT_MANAGER
+  CASHIER
+  + title(): String
+}
+
+class CreditReport {
+  - clientId: String
+  - score: int
+  - summary: String
+}
+
+class AccessDeniedException
+
+CreditBureau <|.. RealCreditBureau
+CreditBureau <|.. CreditBureauProxy
+CreditBureauProxy o--> "1" CreditBureau : real
+LoanModule --> "1" CreditBureau : bureau
+CreditBureauProxy "1" *-- "0..*" CreditReport : cache
+Employee --> "1" Role
+CreditBureau ..> Employee
+CreditBureau ..> CreditReport
+CreditBureauProxy ..> AccessDeniedException : <<throws>>
+
+note right of CreditBureauProxy
+  Захисний + кешуючий Proxy:
+  перевіряє роль, повертає кеш,
+  інакше делегує RealCreditBureau
+end note
+@enduml

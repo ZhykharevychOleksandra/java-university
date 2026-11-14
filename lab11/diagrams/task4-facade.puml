@@ -1,0 +1,72 @@
+@startuml task4-facade
+title Завдання 4. Facade: відкриття рахунку клієнту
+skinparam classAttributeIconSize 0
+
+class AccountOpeningFacade <<Facade>> {
+  - identification: IdentificationService
+  - sanctions: SanctionsService
+  - accounts: AccountService
+  - cards: CardService
+  - onlineBanking: OnlineBankingService
+  - contracts: ContractService
+  + openAccount(client: Client): Account
+}
+
+class BranchChannel <<Client>> {
+  - facade: AccountOpeningFacade
+  + openAccount(client: Client): Account
+}
+
+class OnlineChannel <<Client>> {
+  - facade: AccountOpeningFacade
+  + openAccount(client: Client): Account
+}
+
+class IdentificationService <<Subsystem>> {
+  + identify(client: Client): boolean
+}
+class SanctionsService <<Subsystem>> {
+  + isClear(client: Client): boolean
+}
+class AccountService <<Subsystem>> {
+  - counter: int
+  + create(client: Client): Account
+}
+class CardService <<Subsystem>> {
+  + issueCard(account: Account): void
+  + reissueCard(account: Account): void
+}
+class OnlineBankingService <<Subsystem>> {
+  + connect(account: Account): void
+}
+class ContractService <<Subsystem>> {
+  + sendContract(account: Account): void
+}
+
+class Client {
+  - id: String
+  - name: String
+}
+class Account {
+  - number: String
+  - owner: Client
+}
+
+BranchChannel --> "1" AccountOpeningFacade
+OnlineChannel --> "1" AccountOpeningFacade
+AccountOpeningFacade o--> "1" IdentificationService
+AccountOpeningFacade o--> "1" SanctionsService
+AccountOpeningFacade o--> "1" AccountService
+AccountOpeningFacade o--> "1" CardService
+AccountOpeningFacade o--> "1" OnlineBankingService
+AccountOpeningFacade o--> "1" ContractService
+AccountOpeningFacade ..> Client
+AccountOpeningFacade ..> Account
+AccountService ..> Account : <<creates>>
+Account --> "1" Client : owner
+
+note bottom of CardService
+  Підсистема доступна і напряму:
+  reissueCard() викликається без фасаду
+end note
+@enduml

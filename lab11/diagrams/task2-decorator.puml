@@ -1,0 +1,65 @@
+@startuml task2-decorator
+title Завдання 2. Decorator: опції банківської картки
+skinparam classAttributeIconSize 0
+
+interface Card <<Component>> {
+  + getDescription(): String
+  + getMonthlyCost(): BigDecimal
+}
+
+class BasicCard <<ConcreteComponent>> {
+  - {static} BASE_COST: BigDecimal = 50.00
+  - holder: String
+  + getDescription(): String
+  + getMonthlyCost(): BigDecimal
+}
+
+abstract class CardOption <<Decorator>> {
+  # wrapped: Card
+  # CardOption(wrapped: Card)
+  # {abstract} optionName(): String
+  # {abstract} optionCost(): BigDecimal
+  + getDescription(): String
+  + getMonthlyCost(): BigDecimal
+}
+
+class CashbackOption <<ConcreteDecorator>> {
+  # optionName(): String
+  # optionCost(): BigDecimal
+}
+class TravelInsuranceOption <<ConcreteDecorator>> {
+  # optionName(): String
+  # optionCost(): BigDecimal
+}
+class HigherLimitOption <<ConcreteDecorator>> {
+  # optionName(): String
+  # optionCost(): BigDecimal
+}
+class LoungeAccessOption <<ConcreteDecorator>> {
+  # optionName(): String
+  # optionCost(): BigDecimal
+}
+class SmsInfoOption <<ConcreteDecorator>> {
+  # optionName(): String
+  # optionCost(): BigDecimal
+}
+
+class Main <<Client>> {
+  + {static} situation2CardDecorator(): void
+}
+
+Card <|.. BasicCard
+Card <|.. CardOption
+CardOption o--> "1" Card : wrapped
+CardOption <|-- CashbackOption
+CardOption <|-- TravelInsuranceOption
+CardOption <|-- HigherLimitOption
+CardOption <|-- LoungeAccessOption
+CardOption <|-- SmsInfoOption
+Main ..> Card
+
+note bottom of CardOption
+  Нова опція = новий підклас CardOption,
+  існуючі класи не змінюються
+end note
+@enduml
