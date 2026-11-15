@@ -1,0 +1,140 @@
+classDiagram
+    direction TB
+
+    class PaymentCommand {
+        <<interface>>
+        +execute() void
+        +reverse() void
+        +cancel() void
+        +isReversibleOn(day LocalDate) boolean
+        +nextOccurrence() PaymentCommand
+        +getId() int
+        +getScheduledDate() LocalDate
+        +getState() PaymentState
+        +label() String
+        +describe() String
+    }
+
+    class AbstractPayment {
+        <<abstract>>
+        -int counter$
+        -int id
+        -BankAccount source
+        -BankAccount target
+        -long amount
+        -LocalDate scheduledDate
+        -Repeat repeat
+        -PaymentState state
+        -LocalDate executedOn
+        #AbstractPayment(source BankAccount, target BankAccount, amount long, scheduledDate LocalDate, repeat Repeat)
+        +execute() void
+        +reverse() void
+        +cancel() void
+        +isReversibleOn(day LocalDate) boolean
+        +nextOccurrence() PaymentCommand
+        #copyFor(date LocalDate)* PaymentCommand
+        #kind()* String
+        #details()* String
+    }
+
+    class TransferPayment {
+        -String purpose
+        +TransferPayment(source BankAccount, recipient BankAccount, amount long, date LocalDate, repeat Repeat, purpose String)
+        #copyFor(date LocalDate) PaymentCommand
+    }
+
+    class UtilityPayment {
+        -String service
+        -String personalAccount
+        +UtilityPayment(source BankAccount, provider BankAccount, service String, personalAccount String, amount long, date LocalDate, repeat Repeat)
+        #copyFor(date LocalDate) PaymentCommand
+    }
+
+    class DepositTopUp {
+        +DepositTopUp(source BankAccount, deposit BankAccount, amount long, date LocalDate, repeat Repeat)
+        #copyFor(date LocalDate) PaymentCommand
+    }
+
+    class BankAccount {
+        -String name
+        -long balance
+        +BankAccount(name String, initialBalance long)
+        +getName() String
+        +getBalance() long
+        +deposit(amount long) void
+        +withdraw(amount long) void
+    }
+
+    class PaymentScheduler {
+        -List~PaymentCommand~ queue
+        -List~PaymentCommand~ executed
+        -PaymentJournal journal
+        +schedule(payment PaymentCommand) void
+        +cancel(paymentId int) void
+        +reverse(paymentId int) void
+        +advanceTo(target LocalDate) void
+        +printQueue() void
+        +getJournal() PaymentJournal
+        -runDue() void
+    }
+
+    class PaymentJournal {
+        -List~JournalEntry~ entries
+        +record(paymentId int, operation String, text String) void
+        +getEntries() List~JournalEntry~
+        +print() void
+    }
+
+    class JournalEntry {
+        <<record>>
+        LocalDateTime time
+        int paymentId
+        String operation
+        String text
+    }
+
+    class PaymentState {
+        <<enumeration>>
+        SCHEDULED
+        EXECUTED
+        CANCELLED
+        REVERSED
+        FAILED
+    }
+
+    class Repeat {
+        <<enumeration>>
+        NONE
+        WEEKLY
+        MONTHLY
+        +next(from LocalDate) LocalDate
+    }
+
+    class Main {
+        +main(args String[])$ void
+        ~runDeferredPayments()$ void
+    }
+
+    PaymentCommand <|.. AbstractPayment
+    AbstractPayment <|-- TransferPayment
+    AbstractPayment <|-- UtilityPayment
+    AbstractPayment <|-- DepositTopUp
+    AbstractPayment "*" --> "1" BankAccount : source
+    AbstractPayment "*" --> "1" BankAccount : target
+    AbstractPayment "*" --> "1" PaymentState : state
+    AbstractPayment "*" --> "1" Repeat : repeat
+    PaymentScheduler "1" o-- "0..*" PaymentCommand : queue
+    PaymentScheduler "1" o-- "0..*" PaymentCommand : executed
+    PaymentScheduler "1" *-- "1" PaymentJournal : journal
+    PaymentJournal "1" *-- "0..*" JournalEntry : entries
+    Main ..> PaymentScheduler : викликає
+    Main ..> PaymentCommand : створює
+
+    note for PaymentCommand "Роль: Command — платіж знає, як виконатися (execute) і сторнуватися (reverse)"
+    note for AbstractPayment "Роль: спільна частина ConcreteCommand. Виконання і сторно делегуються Receiver (BankAccount)"
+    note for TransferPayment "Роль: ConcreteCommand — переказ"
+    note for UtilityPayment "Роль: ConcreteCommand — комунальні"
+    note for DepositTopUp "Роль: ConcreteCommand — поповнення депозиту"
+    note for BankAccount "Роль: Receiver — рахунок, над яким виконується дія"
+    note for PaymentScheduler "Роль: Invoker — зберігає чергу, виконує в задану дату, скасовує, сторнує, не знає типів платежів"
+    note for Main "Роль: Client"

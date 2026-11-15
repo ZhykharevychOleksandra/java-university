@@ -1,0 +1,102 @@
+classDiagram
+    direction TB
+
+    class ApprovalHandler {
+        <<abstract>>
+        -String name
+        -ApprovalHandler next
+        #ApprovalHandler(name String)
+        +getName() String
+        +getNext() ApprovalHandler
+        +setNext(next ApprovalHandler) void
+        +handle(application LoanApplication) void
+        #decide(application LoanApplication)* Decision
+        #log(event String) void
+    }
+
+    class LimitApprover {
+        +long UNLIMITED$
+        -long limit
+        +LimitApprover(name String, limit long)
+        +getLimit() long
+        +setLimit(limit long) void
+        #decide(application LoanApplication) Decision
+    }
+
+    class SecurityCheckHandler {
+        -long threshold
+        -Predicate~LoanApplication~ check
+        +SecurityCheckHandler(name String, threshold long, check Predicate)
+        #decide(application LoanApplication) Decision
+    }
+
+    class ApprovalChain {
+        -List~ApprovalHandler~ handlers
+        +addFirst(handler ApprovalHandler) ApprovalChain
+        +addLast(handler ApprovalHandler) ApprovalChain
+        +insertBefore(existingName String, handler ApprovalHandler) ApprovalChain
+        +remove(name String) boolean
+        +submit(application LoanApplication) void
+        +describe() String
+        -relink() void
+    }
+
+    class LoanApplication {
+        -int counter$
+        -int id
+        -String applicant
+        -long amount
+        -LoanStatus status
+        -String decidedBy
+        +LoanApplication(applicant String, amount long)
+        +getAmount() long
+        +getStatus() LoanStatus
+        +approve(by String) void
+        +reject(by String) void
+        +markUnprocessed() void
+        +describe() String
+        +result() String
+    }
+
+    class Decision {
+        <<enumeration>>
+        APPROVE
+        REJECT
+        FORWARD
+    }
+
+    class LoanStatus {
+        <<enumeration>>
+        PENDING
+        APPROVED
+        REJECTED
+        UNPROCESSED
+    }
+
+    class EventLog {
+        +log(source String, event String) void$
+    }
+
+    class Main {
+        +main(args String[])$ void
+        ~runLoanApproval()$ void
+    }
+
+    ApprovalHandler <|-- LimitApprover
+    ApprovalHandler <|-- SecurityCheckHandler
+    ApprovalHandler "1" --> "0..1" ApprovalHandler : next
+    ApprovalChain "1" o-- "0..*" ApprovalHandler : handlers
+    ApprovalChain ..> LoanApplication : submit
+    ApprovalHandler ..> LoanApplication : handle
+    ApprovalHandler ..> Decision : decide
+    ApprovalHandler ..> EventLog : log
+    LoanApplication "1" --> "1" LoanStatus : status
+    Main ..> ApprovalChain : налаштовує і викликає
+    Main ..> LoanApplication : створює
+
+    note for ApprovalHandler "Роль: Handler. handle() — шаблонний метод: рішення рівня (decide) → погодити / відхилити / передати next"
+    note for LimitApprover "Роль: ConcreteHandler. Рівні: менеджер, керівник відділення, комітет, правління (різні ліміти, ліміт змінюється в runtime)"
+    note for SecurityCheckHandler "Роль: ConcreteHandler. Новий рівень — додається без змін існуючих класів"
+    note for ApprovalChain "Роль: конфігуратор ланцюга. Порядок і склад рівнів змінюються в runtime, relink() зв'язує next"
+    note for LoanApplication "Роль: Request — запит, що рухається по ланцюгу"
+    note for Main "Роль: Client"
