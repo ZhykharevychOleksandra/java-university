@@ -1,0 +1,43 @@
+classDiagram
+    direction LR
+
+    class Merchant {
+        -instanceCount int$
+        -id String
+        -name String
+        -logo String
+        -category String
+        -mcc int
+        -address String
+        ~Merchant(String id, String name, String logo, String category, int mcc, String address)
+        +getInstanceCount()$ int
+        +getId() String
+        +getName() String
+        +getMcc() int
+    }
+
+    class MerchantFactory {
+        -pool Map~String, Merchant~
+        -requests int
+        +getMerchant(String id, String name, String logo, String category, int mcc, String address) Merchant
+        +getPoolSize() int
+        +getRequests() int
+    }
+
+    class Transaction {
+        -id int
+        -amountKopecks long
+        -date LocalDate
+        -account String
+        -merchant Merchant
+        +Transaction(int id, long amountKopecks, LocalDate date, String account, Merchant merchant)
+        +getMerchant() Merchant
+    }
+
+    MerchantFactory "1" *-- "0..*" Merchant : pool
+    MerchantFactory ..> Merchant : creates
+    Transaction "*" --> "1" Merchant : merchant (спільний)
+
+    note for Merchant "Роль: Flyweight. Незмінний спільний стан (intrinsic): назва, логотип, категорія, MCC, адреса. Конструктор пакетний, створення лише через фабрику"
+    note for MerchantFactory "Роль: FlyweightFactory. Повторний запит з тим самим id повертає вже створений об'єкт"
+    note for Transaction "Роль: Context (клієнт). Лише власні дані (extrinsic): сума, дата, рахунок"

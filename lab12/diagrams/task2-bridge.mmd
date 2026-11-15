@@ -1,0 +1,81 @@
+classDiagram
+    direction TB
+
+    class BankDocument {
+        <<abstract>>
+        -channel DeliveryChannel
+        #BankDocument(DeliveryChannel channel)
+        +setChannel(DeliveryChannel channel) void
+        +getChannel() DeliveryChannel
+        +getTitle() String*
+        #buildContent() String*
+        +issue() void
+    }
+
+    class PaymentOrder {
+        -number String
+        -payer String
+        -receiver String
+        -amountKopecks long
+        +getTitle() String
+        #buildContent() String
+    }
+
+    class PaymentReceipt {
+        -number String
+        -payer String
+        -purpose String
+        -amountKopecks long
+        +getTitle() String
+        #buildContent() String
+    }
+
+    class AccountStatement {
+        -account String
+        -balanceKopecks long
+        -date String
+        +getTitle() String
+        #buildContent() String
+    }
+
+    class DeliveryChannel {
+        <<interface>>
+        +getName() String
+        +deliver(String title, String content) void
+    }
+
+    class PrintChannel {
+        -branch String
+        +deliver(String title, String content) void
+    }
+
+    class PdfChannel {
+        +deliver(String title, String content) void
+    }
+
+    class SignedElectronicChannel {
+        +deliver(String title, String content) void
+    }
+
+    class DiiaChannel {
+        +deliver(String title, String content) void
+    }
+
+    PaymentOrder --|> BankDocument
+    PaymentReceipt --|> BankDocument
+    AccountStatement --|> BankDocument
+    BankDocument "*" --> "1" DeliveryChannel : channel (міст)
+    PrintChannel ..|> DeliveryChannel
+    PdfChannel ..|> DeliveryChannel
+    SignedElectronicChannel ..|> DeliveryChannel
+    DiiaChannel ..|> DeliveryChannel
+
+    note for BankDocument "Роль: Abstraction. Вид документа (що містить), делегує подачу каналу"
+    note for PaymentOrder "Роль: RefinedAbstraction"
+    note for PaymentReceipt "Роль: RefinedAbstraction"
+    note for AccountStatement "Роль: RefinedAbstraction"
+    note for DeliveryChannel "Роль: Implementor. Спосіб надання (як подається)"
+    note for PrintChannel "Роль: ConcreteImplementor"
+    note for PdfChannel "Роль: ConcreteImplementor"
+    note for SignedElectronicChannel "Роль: ConcreteImplementor"
+    note for DiiaChannel "Роль: ConcreteImplementor. Новий спосіб = один новий клас"

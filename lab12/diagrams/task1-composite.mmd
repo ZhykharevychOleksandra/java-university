@@ -1,0 +1,59 @@
+classDiagram
+    direction BT
+
+    class BankUnit {
+        <<interface>>
+        +getName() String
+        +getKind() String
+        +getCashBalance() long
+        +getOperationsCount() int
+        +printTree(String prefix, boolean isLast, boolean isRoot, Consumer~String~ out) void
+        +printTree(Consumer~String~ out) void
+        +describe() String
+    }
+
+    class Cashier {
+        -name String
+        -cashBalance long
+        -operationsCount int
+        +Cashier(String name, long cashBalance, int operationsCount)
+        +getCashBalance() long
+        +getOperationsCount() int
+    }
+
+    class OrganizationUnit {
+        -name String
+        -level UnitLevel
+        -children List~BankUnit~
+        +OrganizationUnit(String name, UnitLevel level)
+        +add(BankUnit unit) OrganizationUnit
+        +remove(BankUnit unit) void
+        +getCashBalance() long
+        +getOperationsCount() int
+    }
+
+    class UnitLevel {
+        <<enumeration>>
+        HEAD_OFFICE
+        REGION
+        BRANCH
+        MINI_BRANCH
+        -label String
+        +getLabel() String
+    }
+
+    class TreasuryReport {
+        -TreasuryReport()
+        +report(BankUnit unit)$ void
+    }
+
+    Cashier ..|> BankUnit
+    OrganizationUnit ..|> BankUnit
+    OrganizationUnit "1" o-- "0..*" BankUnit : children
+    OrganizationUnit --> "1" UnitLevel : level
+    TreasuryReport ..> BankUnit : uses
+
+    note for BankUnit "Роль: Component. Єдиний інтерфейс для каси та будь-якого підрозділу"
+    note for Cashier "Роль: Leaf. Каса (без дочірніх вузлів)"
+    note for OrganizationUnit "Роль: Composite. Банк, управління, відділення, міні-відділення. Міні-відділення можна вкладати у відділення на будь-яку глибину"
+    note for TreasuryReport "Роль: Client. Працює лише з BankUnit, без циклів по рівнях"
