@@ -1,0 +1,59 @@
+@startuml task2_observer
+title Завдання 2. Зміна курсу валют: Observer
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+interface RateSubject <<Subject>> {
+  + subscribe(o : RateObserver) : void
+  + unsubscribe(o : RateObserver) : void
+}
+
+interface RateObserver <<Observer>> {
+  + getName() : String
+  + onRateChanged(pair : String, oldRate : BigDecimal,\n  newRate : BigDecimal) : void
+}
+
+class ExchangeRateService <<ConcreteSubject>> {
+  - {static} NAME : String
+  - pair : String
+  - rate : BigDecimal
+  - observers : CopyOnWriteArrayList<RateObserver>
+  + subscribe(o : RateObserver) : void
+  + unsubscribe(o : RateObserver) : void
+  + setRate(newRate : BigDecimal) : void
+  + getRate() : BigDecimal
+}
+
+class BranchBoard <<ConcreteObserver>> {
+  + onRateChanged(...) : void
+}
+class OnlineBanking <<ConcreteObserver>> {
+  + onRateChanged(...) : void
+}
+class ConverterModule <<ConcreteObserver>> {
+  + onRateChanged(...) : void
+}
+class NotifiedClient <<ConcreteObserver>> {
+  - name : String
+  - threshold : BigDecimal
+  + onRateChanged(...) : void
+}
+
+RateSubject <|.. ExchangeRateService
+RateObserver <|.. BranchBoard
+RateObserver <|.. OnlineBanking
+RateObserver <|.. ConverterModule
+RateObserver <|.. NotifiedClient
+
+ExchangeRateService o-- "0..*" RateObserver : observers
+
+note right of NotifiedClient
+  Сам вирішує, як реагувати:
+  сповіщення лише якщо newRate <= threshold.
+end note
+note bottom of ExchangeRateService
+  setRate() -> змінює стан і
+  викликає onRateChanged() у всіх підписників.
+  Конкретних отримувачів не знає.
+end note
+@enduml

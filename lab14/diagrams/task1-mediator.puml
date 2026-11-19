@@ -1,0 +1,109 @@
+@startuml task1_mediator
+title Завдання 1. Видача кредиту: Mediator
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+enum LoanEvent <<event>> {
+  APPLICATION_SUBMITTED
+  CHECK_PASSED
+  CHECK_FAILED
+  CONTRACT_SIGNED
+  FUNDS_ISSUED
+}
+
+enum LoanStatus <<state>> {
+  NEW
+  IN_REVIEW
+  CONTRACT_STAGE
+  ISSUED
+  REJECTED
+}
+
+class LoanApplication <<data>> {
+  - id : int
+  - clientName : String
+  - amount : int
+  - creditScore : int
+  - securityFlagged : boolean
+  - collateralValue : int
+  - status : LoanStatus
+  + getStatus() : LoanStatus
+  + setStatus(status : LoanStatus) : void
+}
+
+interface LoanMediator <<Mediator>> {
+  + notify(sender : LoanParticipant, event : LoanEvent,\n  app : LoanApplication, details : String) : void
+}
+
+class LoanCoordinator <<ConcreteMediator>> {
+  - {static} NAME : String
+  - checks : List<Checker>
+  - pending : Map<Integer, Set<Checker>>
+  + setManager(m : LoanManager) : void
+  + setLegal(l : LegalDepartment) : void
+  + setCashier(c : Cashier) : void
+  + addCheck(c : Checker) : void
+  + notify(sender, event, app, details) : void
+  - startChecks(app) : void
+  - onCheckPassed(sender, app) : void
+  - onCheckFailed(sender, app, reason) : void
+}
+
+abstract class LoanParticipant <<Colleague>> {
+  # name : String
+  # mediator : LoanMediator
+  + getName() : String
+}
+
+interface Checker <<Colleague role: перевірка>> {
+  + check(app : LoanApplication) : void
+}
+
+class LoanManager <<ConcreteColleague>> {
+  + submit(app) : void
+  + onRejected(app, reason) : void
+  + onIssued(app) : void
+}
+class ScoringService <<ConcreteColleague>> {
+  - {static} MIN_SCORE : int
+  + check(app) : void
+}
+class SecurityService <<ConcreteColleague>> {
+  + check(app) : void
+}
+class CollateralAppraiser <<ConcreteColleague (новий)>> {
+  + check(app) : void
+}
+class LegalDepartment <<ConcreteColleague>> {
+  + prepareContract(app) : void
+}
+class Cashier <<ConcreteColleague>> {
+  + issueFunds(app) : void
+}
+
+LoanMediator <|.. LoanCoordinator
+LoanParticipant <|-- LoanManager
+LoanParticipant <|-- ScoringService
+LoanParticipant <|-- SecurityService
+LoanParticipant <|-- CollateralAppraiser
+LoanParticipant <|-- LegalDepartment
+LoanParticipant <|-- Cashier
+Checker <|.. ScoringService
+Checker <|.. SecurityService
+Checker <|.. CollateralAppraiser
+
+LoanParticipant "1..*" --> "1" LoanMediator : mediator
+LoanCoordinator o-- "0..*" Checker : checks
+LoanCoordinator --> "1" LoanManager
+LoanCoordinator --> "1" LegalDepartment
+LoanCoordinator --> "1" Cashier
+LoanCoordinator ..> LoanApplication : <<use>>
+LoanCoordinator ..> LoanEvent : <<use>>
+LoanApplication --> "1" LoanStatus
+
+note right of LoanCoordinator
+  Усі правила послідовності:
+  безпека + скоринг -> юристи -> касир.
+  Учасники між собою не знайомі.
+end note
+@enduml
