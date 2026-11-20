@@ -1,0 +1,71 @@
+@startuml task1_iterator
+title Завдання 1. Iterator — обхід операцій клієнта
+skinparam classAttributeIconSize 0
+
+interface TransactionCollection <<Aggregate>> {
+  +newestFirst(limit: int): TransactionIterator
+  +yearChronological(year: int): TransactionIterator
+  +aboveAmount(thresholdUah: long): TransactionIterator
+}
+interface TransactionIterator <<Iterator>> {
+  +hasNext(): boolean
+  +next(): Transaction
+  +name(): String
+  +returned(): int
+}
+class Client <<ConcreteAggregate>> {
+  -name: String
+  -accounts: List<Account>
+  +addAccount(a: Account)
+  +describeStructure(): String
+  -chronological(): List<Transaction>
+}
+class NewestFirstIterator <<ConcreteIterator>> {
+  -chronological: List<Transaction>
+  -limit: int
+  -index: int
+  -returned: int
+}
+class FilteringIterator <<ConcreteIterator>> {
+  -chronological: List<Transaction>
+  -filter: Predicate<Transaction>
+  -name: String
+  -index: int
+  -returned: int
+}
+class Account {
+  -number: String
+  -blocks: Map<YearMonth, ArchiveBlock>
+  +addOperation(t: Transaction)
+  +getBlocks(): Collection<ArchiveBlock>
+}
+class ArchiveBlock {
+  -period: YearMonth
+  -operations: List<Transaction>
+  ~add(t: Transaction)
+  +getOperations(): List<Transaction>
+}
+class Transaction <<record>> {
+  +id: String
+  +accountNo: String
+  +date: LocalDate
+  +amountUah: long
+  +description: String
+}
+class Main <<Client code>> {
+  -situation1Iterator()
+}
+
+TransactionCollection <|.. Client
+TransactionIterator <|.. NewestFirstIterator
+TransactionIterator <|.. FilteringIterator
+Client "1" *-- "1..*" Account
+Account "1" *-- "0..*" ArchiveBlock
+ArchiveBlock "1" o-- "0..*" Transaction
+Client ..> NewestFirstIterator : <<create>>
+Client ..> FilteringIterator : <<create>>
+NewestFirstIterator "1" o-- "0..*" Transaction
+FilteringIterator "1" o-- "0..*" Transaction
+Main ..> TransactionCollection
+Main ..> TransactionIterator
+@enduml

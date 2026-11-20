@@ -1,0 +1,65 @@
+@startuml task3_visitor
+title Завдання 3. Visitor — операції над банківськими продуктами
+skinparam classAttributeIconSize 0
+
+interface BankProduct <<Element>> {
+  +id(): String
+  +accept(v: ProductVisitor)
+}
+class Deposit <<ConcreteElement, record>> {
+  +id: String
+  +principal: double
+  +annualRate: double
+}
+class Loan <<ConcreteElement, record>> {
+  +id: String
+  +outstanding: double
+  +annualRate: double
+  +overdueDays: int
+}
+class Card <<ConcreteElement, record>> {
+  +id: String
+  +creditLimit: double
+  +usedLimit: double
+  +annualRate: double
+}
+class InvestmentAccount <<ConcreteElement, record>> {
+  +id: String
+  +marketValue: double
+  +managementFee: double
+}
+class Portfolio <<ObjectStructure>> {
+  -clientName: String
+  -products: List<BankProduct>
+  +add(p: BankProduct): Portfolio
+  +accept(v: ProductVisitor)
+}
+interface ProductVisitor <<Visitor>> {
+  +visit(d: Deposit)
+  +visit(l: Loan)
+  +visit(c: Card)
+  +visit(a: InvestmentAccount)
+}
+class ReserveVisitor <<ConcreteVisitor>> {
+  -total: double
+  +getTotal(): double
+}
+class ProfitabilityVisitor <<ConcreteVisitor>> {
+  -total: double
+  +getTotal(): double
+}
+class ClientReportVisitor <<ConcreteVisitor, нова операція>> {
+  -report: StringBuilder
+  +getReport(): String
+}
+
+BankProduct <|.. Deposit
+BankProduct <|.. Loan
+BankProduct <|.. Card
+BankProduct <|.. InvestmentAccount
+ProductVisitor <|.. ReserveVisitor
+ProductVisitor <|.. ProfitabilityVisitor
+ProductVisitor <|.. ClientReportVisitor
+Portfolio "1" o-- "0..*" BankProduct
+BankProduct ..> ProductVisitor : accept → visit(this)
+@enduml

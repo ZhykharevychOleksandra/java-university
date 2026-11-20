@@ -1,0 +1,40 @@
+@startuml task2_memento
+title Завдання 2. Memento — відкат операційного дня
+skinparam classAttributeIconSize 0
+
+class LedgerBook <<Originator>> {
+  -balances: Map<String, Long>
+  +open(account: String, balance: long)
+  +adjust(account: String, delta: long)
+  +describe(): String
+  +save(label: String): LedgerMemento
+  +restore(m: LedgerMemento)
+}
+interface LedgerMemento <<Memento (вузький інтерфейс)>> {
+  +label(): String
+}
+class Snapshot <<ConcreteMemento>> {
+  -label: String
+  -state: Map<String, Long> {unmodifiable}
+  -Snapshot(label, state)
+  +label(): String
+}
+class Treasury <<Caretaker>> {
+  -checkpoints: List<LedgerMemento>
+  +checkpoint(ledger: LedgerBook, label: String)
+  +rollbackTo(ledger: LedgerBook, label: String)
+  +labels(): List<String>
+}
+class Main <<Client code>> {
+  -situation2Memento()
+}
+
+LedgerMemento <|.. Snapshot
+LedgerBook +-- Snapshot : <<private nested>>
+LedgerBook ..> Snapshot : <<create>>
+Treasury "1" o-- "0..*" LedgerMemento
+Treasury ..> LedgerBook
+Main ..> Treasury
+Main ..> LedgerBook
+note right of Treasury : Бачить лише LedgerMemento.label(),\nвміст стану недоступний
+@enduml
