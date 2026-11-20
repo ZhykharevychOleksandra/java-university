@@ -1,0 +1,52 @@
+@startuml
+title Завдання 2. State — стан банківської картки
+class Card <<Context>> {
+  -{static} MAX_PIN_ATTEMPTS: int = 3
+  -number: String
+  -pin: String
+  -balance: double
+  -failedAttempts: int
+  -state: CardState
+  +activate()
+  +pay(amount: double)
+  +enterPin(pin: String)
+  +unblock()
+  +blockPermanently()
+  +reissue()
+  +expire()
+  ~setState(s: CardState)
+}
+interface CardState <<State>> {
+  +name(): String
+  +activate(c: Card)
+  +pay(c: Card, amount: double)
+  +enterPin(c: Card, pin: String)
+  +unblock(c: Card)
+  +blockPermanently(c: Card)
+  +reissue(c: Card)
+  +expire(c: Card)
+}
+abstract class BaseCardState <<DefaultState>> {
+  #deny(c: Card, op: String, hint: String)
+}
+class IssuedState <<ConcreteState>>
+class ActiveState <<ConcreteState>>
+class TemporarilyBlockedState <<ConcreteState>>
+class PermanentlyBlockedState <<ConcreteState>>
+class ExpiredState <<ConcreteState>>
+Card "1" o--> "1" CardState : state
+CardState <|.. BaseCardState
+BaseCardState <|-- IssuedState
+BaseCardState <|-- ActiveState
+BaseCardState <|-- TemporarilyBlockedState
+BaseCardState <|-- PermanentlyBlockedState
+BaseCardState <|-- ExpiredState
+IssuedState ..> ActiveState : creates
+ActiveState ..> TemporarilyBlockedState : creates
+ActiveState ..> PermanentlyBlockedState : creates
+ActiveState ..> ExpiredState : creates
+TemporarilyBlockedState ..> ActiveState : creates
+TemporarilyBlockedState ..> PermanentlyBlockedState : creates
+PermanentlyBlockedState ..> IssuedState : creates
+ExpiredState ..> IssuedState : creates
+@enduml

@@ -1,0 +1,40 @@
+@startuml
+title Завдання 1. Template Method — закриття банківських продуктів
+class Client { -name: String\n-debt: double\n+getName(): String\n+getDebt(): double }
+abstract class ProductClosure <<AbstractClass>> {
+  -source: String
+  +close(client: Client) <<template method>>
+  -identify(c: Client)
+  -issueCertificate(c: Client)
+  #{abstract} productName(): String
+  #{abstract} finalSettlement(c: Client)
+  #checkDebt(c: Client): boolean <<hook>>
+  #withholdTax(c: Client) <<hook>>
+  #closeProduct(c: Client) <<hook>>
+}
+class DepositClosure <<ConcreteClass>> {
+  -{static} TAX_RATE: double
+  -amount: double
+  -annualRate: double
+  -months: int
+  -interest: double
+  #productName(): String
+  #finalSettlement(c: Client)
+  #withholdTax(c: Client)
+}
+class LoanClosure <<ConcreteClass>> {
+  -remaining: double
+  #productName(): String
+  #finalSettlement(c: Client)
+}
+class CardClosure <<ConcreteClass>> {
+  -balance: double
+  #productName(): String
+  #finalSettlement(c: Client)
+  #closeProduct(c: Client)
+}
+ProductClosure <|-- DepositClosure
+ProductClosure <|-- LoanClosure
+ProductClosure <|-- CardClosure
+ProductClosure ..> Client : "<<use>> 1"
+@enduml

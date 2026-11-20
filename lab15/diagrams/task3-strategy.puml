@@ -1,0 +1,27 @@
+@startuml
+title Завдання 3. Strategy — схеми нарахування відсотків
+class Deposit <<Context>> {
+  -id: String
+  -principal: double
+  -months: int
+  -strategy: InterestStrategy
+  +setStrategy(s: InterestStrategy)
+  +prolong(extraMonths: int, s: InterestStrategy)
+  +calculateIncome(): double
+}
+interface InterestStrategy <<Strategy>> {
+  +name(): String
+  +calculate(principal: double, months: int): double
+}
+class SimpleInterest <<ConcreteStrategy>> { -annualRate: double }
+class MonthlyCapitalization <<ConcreteStrategy>> { -annualRate: double }
+class DailyAccrual <<ConcreteStrategy>> { -annualRate: double }
+class TieredRate <<ConcreteStrategy>>
+class BonusRate <<ConcreteStrategy, нова>> { -baseRate: double\n-bonus: double }
+Deposit "1" o--> "1" InterestStrategy : strategy
+InterestStrategy <|.. SimpleInterest
+InterestStrategy <|.. MonthlyCapitalization
+InterestStrategy <|.. DailyAccrual
+InterestStrategy <|.. TieredRate
+InterestStrategy <|.. BonusRate
+@enduml
